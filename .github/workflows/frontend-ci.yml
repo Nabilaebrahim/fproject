@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'frontend/**'
+      - 'k8s/**'
     branches: [ main ]
 
 jobs:
