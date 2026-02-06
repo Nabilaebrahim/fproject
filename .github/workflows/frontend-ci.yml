@@ -31,12 +31,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }} 
         run: |
 
-          mkdir -p frontend/public
-          
-          
-          mv frontend/index.html frontend/public/ || echo "index.html already moved"
-          mv frontend/manifest.json frontend/public/ || echo "manifest.json already moved"
-          
+        
           
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$IMAGE_TAG ./frontend
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$IMAGE_TAG
