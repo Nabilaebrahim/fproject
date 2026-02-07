@@ -14,6 +14,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # ------------ ---
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v3
+        continue-on-error: true
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=Nabilaebrahim_fproject
+            -Dsonar.organization=nabilaebrahim
+            -Dsonar.sources=frontend/
+      # ------------------------
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
