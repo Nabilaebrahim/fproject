@@ -45,3 +45,4 @@ jobs:
           
           kubectl apply -f k8s/db.yaml
           kubectl apply -f k8s/backend.yaml
+          kubectl apply -f k8s/backup-cronjob.yaml

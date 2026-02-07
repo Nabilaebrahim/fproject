@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: db-backup
+spec:
+  schedule: "0 0 * * *"  # every day 12 night
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup-worker
+            image: postgres:15
+            env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws-s3-creds
+                  key: access_key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-s3-creds
+                  key: secret_key
+            - name: AWS_DEFAULT_REGION
+              value: "us-east-1"
+            command:
+            - /bin/sh
+            - -c
+            - |
+              apt-get update && apt-get install -y awscli
+              
+              pg_dump -h db -U postgres microservices_db > /tmp/backup.sql
+              
+              aws s3 cp /tmp/backup.sql s3://اسم-الباكت-بتاعك/backup-$(date +%Y-%m-%d).sql
+          restartPolicy: OnFailure
