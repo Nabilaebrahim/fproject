@@ -66,6 +66,8 @@ spec:
     spec:
       securityContext:      
         fsGroup: 999
+      nodeSelector:
+          topology.kubernetes.io/zone: us-east-1a  
       containers:
       - name: postgres
         image: postgres:15
