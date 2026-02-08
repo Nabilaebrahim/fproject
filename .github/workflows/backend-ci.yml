@@ -53,15 +53,17 @@ jobs:
 
       - name: Update YAML and Push to GitHub
         run: |
-          
-          sed -i "s/[0-9]\{12\}/${{ vars.AWS_ACCOUNT_ID }}/g" k8s/backend.yaml
-          sed -i "s/backend-[a-z0-9]*/backend-${{ github.sha }}/g" k8s/backend.yaml
-          
-          
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           
+         
+          git pull origin main --rebase
+
+      
+          sed -i "s/[0-9]\{12\}/${{ vars.AWS_ACCOUNT_ID }}/g" k8s/backend.yaml
+          sed -i "s/backend-[a-z0-9]*/backend-${{ github.sha }}/g" k8s/backend.yaml
           
           git add k8s/backend.yaml
-          git commit -m "Update backend image to ${{ github.sha }}"
-          git push
+          
+          
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update backend image to ${{ github.sha }}" && git push origin main)
