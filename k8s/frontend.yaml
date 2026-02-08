@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
       - name: frontend
-        # الـ Pipeline هيغير الـ ID ده أوتوماتيك زي الباك إند
-        image: ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/gitops-webapp:frontend-latest
+        
+        image: 703216717940.dkr.ecr.us-east-1.amazonaws.com/gitops-webapp:frontend-8691612434053d2b8fbf121ad9575d15c74af2e7
         ports:
         - containerPort: 80
         env:

@@ -39,3 +39,8 @@ spec:
              
               aws s3 cp /tmp/backup.sql s3://s3-bucket-buckup-from-db/backup-$(date +%Y-%m-%d).sql
           restartPolicy: OnFailure
+
+
+
+
+          

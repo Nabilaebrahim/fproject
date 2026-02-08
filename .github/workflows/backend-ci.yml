@@ -49,15 +49,17 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:backend-$IMAGE_TAG ./backend
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:backend-$IMAGE_TAG
 
-      - name: Update Kubeconfig and Deploy
+      - name: Update YAML and Push to GitHub
         run: |
-          aws eks update-kubeconfig --name ${{ vars.EKS_CLUSTER_NAME }} --region ${{ vars.AWS_REGION }}
+          
+          sed -i "s/[0-9]\{12\}/${{ vars.AWS_ACCOUNT_ID }}/g" k8s/backend.yaml
+          sed -i "s/backend-[a-z0-9]*/backend-${{ github.sha }}/g" k8s/backend.yaml
           
           
-          sed -i "s/\${AWS_ACCOUNT_ID}/${{ vars.AWS_ACCOUNT_ID }}/g" k8s/backend.yaml
-          sed -i "s/backend-latest/backend-${{ github.sha }}/g" k8s/backend.yaml
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
           
           
-          kubectl apply -f k8s/db.yaml
-          kubectl apply -f k8s/backend.yaml
-          kubectl apply -f k8s/backup-cronjob.yaml
+          git add k8s/backend.yaml
+          git commit -m "Update backend image to ${{ github.sha }}"
+          git push
