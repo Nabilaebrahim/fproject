@@ -18,6 +18,13 @@ spec:
         image: 703216717940.dkr.ecr.us-east-1.amazonaws.com/gitops-webapp:backend-3ceeee17be9deb22d8b0f500262f5f83c64a7ce1
         ports:
         - containerPort: 5000
+        resources: 
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
         env:
         - name: DATABASE_URL
           value: "postgresql://postgres:postgres@db:5432/microservices_db"

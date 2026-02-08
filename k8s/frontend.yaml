@@ -18,6 +18,13 @@ spec:
         image: 703216717940.dkr.ecr.us-east-1.amazonaws.com/gitops-webapp:frontend-3ceeee17be9deb22d8b0f500262f5f83c64a7ce1
         ports:
         - containerPort: 80
+        resources: 
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
         env:
         - name: REACT_APP_API_URL
           value: "/api"
