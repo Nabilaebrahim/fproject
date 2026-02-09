@@ -178,7 +178,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           
-          echo "$COSIGN_PRIVATE_KEY" > cosign.key
+          echo -e "$COSIGN_PRIVATE_KEY" > cosign.key
           
           cosign sign --yes --key cosign.key $ECR_REGISTRY/$ECR_REPOSITORY:backend-$IMAGE_TAG
 
