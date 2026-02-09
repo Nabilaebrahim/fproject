@@ -162,6 +162,7 @@ jobs:
       # ==========================================================
       - name: Sign Frontend Image
         env:
+          
           COSIGN_PRIVATE_KEY: ${{ env.COSIGN_DATA_COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ env.COSIGN_DATA_COSIGN_PASSWORD }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
