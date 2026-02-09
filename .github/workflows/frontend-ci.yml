@@ -1,10 +1,104 @@
 
+# name: Frontend CI/CD
+# on:
+#   push:
+#     paths:
+#       - 'frontend/**'        
+#       - 'k8s/**'             
+#       - '!k8s/frontend.yaml'
+#     branches: [ main ]
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+#         with:
+#           token: ${{ secrets.GITHUB_TOKEN }}
+
+#       # ------------ ---
+#       - name: SonarCloud Scan
+#         uses: SonarSource/sonarqube-scan-action@v3
+#         continue-on-error: true
+#         env:
+#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#         with:
+#           args: >
+#             -Dsonar.projectKey=Nabilaebrahim_fproject
+#             -Dsonar.organization=nabilaebrahim
+#             -Dsonar.sources=frontend/
+#       # ------------------------
+
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v1
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ vars.AWS_REGION }}
+
+#       - name: Login to Amazon ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v1
+
+#       - name: Build and Push Frontend Image
+#         env:
+#           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+#           IMAGE_TAG: ${{ github.sha }} 
+#         run: |
+
+        
+          
+#           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$IMAGE_TAG ./frontend
+#           docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$IMAGE_TAG
+
+#       # ---------------------------------------#
+
+#       - name: Install Cosign
+#         uses: sigstore/cosign-installer@v3.4.0
+
+#       - name: Sign Frontend Image
+#         env:
+#           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+#           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+#           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+#           IMAGE_TAG: ${{ github.sha }}
+#         run: |
+#           cosign sign --yes --key env://COSIGN_PRIVATE_KEY $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$IMAGE_TAG
+
+# # ------------------------------------------------------#
+
+#       - name: Update YAML and Push to GitHub
+#         run: |
+#           git config --global user.name "github-actions"
+#           git config --global user.email "github-actions@github.com"
+          
+         
+#           git pull origin main --rebase
+
+          
+#           sed -i "s/[0-9]\{12\}/${{ vars.AWS_ACCOUNT_ID }}/g" k8s/frontend.yaml
+#           sed -i "s/frontend-[a-z0-9]*/frontend-${{ github.sha }}/g" k8s/frontend.yaml
+          
+#           git add k8s/frontend.yaml
+         
+#           git diff --quiet && git diff --staged --quiet || (git commit -m "Update frontend image to ${{ github.sha }}" && git push origin main)
+
+
+
+
+
+
+
+
 name: Frontend CI/CD
 on:
   push:
     paths:
       - 'frontend/**'        
-      - 'k8s/**'             
+      - 'k8s/**'              
       - '!k8s/frontend.yaml'
     branches: [ main ]
 
@@ -17,7 +111,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # ------------ ---
+      # --- SonarCloud Scan ---
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v3
         continue-on-error: true
@@ -28,7 +122,8 @@ jobs:
             -Dsonar.projectKey=Nabilaebrahim_fproject
             -Dsonar.organization=nabilaebrahim
             -Dsonar.sources=frontend/
-      # ------------------------
+
+      # --------------------------------------
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -47,41 +142,46 @@ jobs:
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }} 
         run: |
-
-        
-          
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$IMAGE_TAG ./frontend
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$IMAGE_TAG
 
-      # ---------------------------------------#
+      # ==========================================================
+      #
+      # ==========================================================
+      - name: Get Secrets from AWS
+        uses: aws-actions/aws-secretsmanager-get-secrets@v2
+        with:
+          secret-ids: |
+            COSIGN_DATA, prod/deployment/cosign
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.4.0
 
+      # ==========================================================
+      
+      # ==========================================================
       - name: Sign Frontend Image
         env:
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          COSIGN_PRIVATE_KEY: ${{ env.COSIGN_DATA_COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ env.COSIGN_DATA_COSIGN_PASSWORD }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           cosign sign --yes --key env://COSIGN_PRIVATE_KEY $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$IMAGE_TAG
 
-# ------------------------------------------------------#
+      # ==========================================================
 
       - name: Update YAML and Push to GitHub
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           
-         
           git pull origin main --rebase
 
-          
           sed -i "s/[0-9]\{12\}/${{ vars.AWS_ACCOUNT_ID }}/g" k8s/frontend.yaml
           sed -i "s/frontend-[a-z0-9]*/frontend-${{ github.sha }}/g" k8s/frontend.yaml
           
           git add k8s/frontend.yaml
-         
+          
           git diff --quiet && git diff --staged --quiet || (git commit -m "Update frontend image to ${{ github.sha }}" && git push origin main)
