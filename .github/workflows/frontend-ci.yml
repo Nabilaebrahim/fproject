@@ -201,3 +201,22 @@ jobs:
           git add k8s/frontend.yaml
           
           git diff --quiet && git diff --staged --quiet || (git commit -m "Update frontend image to ${{ github.sha }}" && git push origin main)
+
+
+      # ==========================================================
+      # Slack
+      # ==========================================================
+      - name: Send Slack Notification
+        if: always() 
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_CHANNEL: new-channel 
+          SLACK_TITLE: "Frontend Deployment Status"
+          SLACK_COLOR: ${{ job.status }} 
+          SLACK_ICON: https://github.com/github.png?size=48
+          SLACK_MESSAGE: |
+            *Status:* ${{ job.status }} ✅
+            *Project:* Frontend CI/CD
+            *Commit:* ${{ github.sha }}
+            *Action URL:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
