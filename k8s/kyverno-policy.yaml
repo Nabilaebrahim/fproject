@@ -15,12 +15,12 @@ spec:
             kinds:
               - Pod
       verifyImages:
-        - imageReferences:
-            - "*"
-          attestations:
-            - predicateType: cosign.sigstore.dev/attestation/v1
-          key: |-
-            -----BEGIN PUBLIC KEY-----
-            MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvrEYd5o5eap0Bb2yAsyxZIf4O3LZ
-            E1xynaLt4owzOkZXA4tKDnbhfsmT6WA4IIxjvySmJsGunUFUAjVUM4592A==
-            -----END PUBLIC KEY-----
+      - imageReferences:
+        - "*"
+        attestations:
+        - predicateType: cosign.sigstore.dev/attestation/v1
+        key: |-
+          -----BEGIN PUBLIC KEY-----
+          MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvrEYd5o5eap0Bb2yAsyxZIf4O3LZ
+          E1xynaLt4owzOkZXA4tKDnbhfsmT6WA4IIxjvySmJsGunUFUAjVUM4592A==
+          -----END PUBLIC KEY-----
