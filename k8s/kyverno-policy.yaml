@@ -5,7 +5,7 @@ metadata:
   annotations:
     policies.kyverno.io/title: Verify Image Signature
 spec:
-  validationFailureAction: Audit
+  validationFailureAction: Enforce
   background: true
   rules:
     - name: verify-signature
