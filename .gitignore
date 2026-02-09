@@ -32,3 +32,6 @@ Thumbs.db
 
 
 __MACOSX/
+
+cosign.pub
+cosign.key
