@@ -170,34 +170,27 @@ jobs:
       # ==========================================================
       
       # ==========================================================
-      - name: Sign Backend Image
+      - name: Sign Image
         env:
-          
           SECRET_JSON: ${{ env.PROD_DEPLOYMENT_COSIGN }}
-          
-          COSIGN_PASSWORD: ${{ env.COSIGN_PASSWORD || env.PROD_DEPLOYMENT_COSIGN_COSIGN_PASSWORD }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           
           RAW_KEY=$(echo $SECRET_JSON | jq -r '.COSIGN_PRIVATE_KEY')
+         
+          export COSIGN_PASSWORD=$(echo $SECRET_JSON | jq -r '.COSIGN_PASSWORD')
 
           
-          if [ -z "$RAW_KEY" ] || [ "$RAW_KEY" == "null" ]; then 
-            echo "❌ ERROR: Could not extract COSIGN_PRIVATE_KEY from JSON."
-            exit 1
-          fi
+          if [ -z "$RAW_KEY" ] || [ "$RAW_KEY" == "null" ]; then echo "❌ Key Missing"; exit 1; fi
+          if [ -z "$COSIGN_PASSWORD" ] || [ "$COSIGN_PASSWORD" == "null" ]; then echo "❌ Password Missing"; exit 1; fi
 
-         
+          
           printf "%b" "$RAW_KEY" > cosign.key
 
-          echo "✅ Key file format check (Backend):"
-          head -n 1 cosign.key
-
-          
+     
           cosign sign --yes --key cosign.key $ECR_REGISTRY/$ECR_REPOSITORY:backend-$IMAGE_TAG
-          
           
           rm cosign.key
       # ==========================================================
