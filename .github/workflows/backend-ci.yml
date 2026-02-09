@@ -172,24 +172,33 @@ jobs:
       # ==========================================================
       - name: Sign Backend Image
         env:
-         
-          RAW_KEY: ${{ env.COSIGN_PRIVATE_KEY || env.PROD_DEPLOYMENT_COSIGN_COSIGN_PRIVATE_KEY }}
+          
+          SECRET_JSON: ${{ env.PROD_DEPLOYMENT_COSIGN }}
+          
           COSIGN_PASSWORD: ${{ env.COSIGN_PASSWORD || env.PROD_DEPLOYMENT_COSIGN_COSIGN_PASSWORD }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          if [ -z "$RAW_KEY" ]; then 
-            echo "❌ ERROR: RAW_KEY is EMPTY. Check AWS Secret keys names."
+          
+          RAW_KEY=$(echo $SECRET_JSON | jq -r '.COSIGN_PRIVATE_KEY')
+
+          
+          if [ -z "$RAW_KEY" ] || [ "$RAW_KEY" == "null" ]; then 
+            echo "❌ ERROR: Could not extract COSIGN_PRIVATE_KEY from JSON."
             exit 1
           fi
 
+         
           printf "%b" "$RAW_KEY" > cosign.key
-          
-          echo "Key file format check:"
+
+          echo "✅ Key file format check (Backend):"
           head -n 1 cosign.key
 
+          
           cosign sign --yes --key cosign.key $ECR_REGISTRY/$ECR_REPOSITORY:backend-$IMAGE_TAG
+          
+          
           rm cosign.key
       # ==========================================================
 

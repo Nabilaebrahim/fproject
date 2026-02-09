@@ -160,30 +160,32 @@ jobs:
       # ==========================================================
       
       # ==========================================================
-      - name: Sign Frontend Image
+      - name: Sign Image
         env:
-          # هنا بنجرب كل الاحتمالات لاسم المتغير عشان RAW_KEY ماتطلعش فاضية
-          RAW_KEY: ${{ env.COSIGN_PRIVATE_KEY || env.PROD_DEPLOYMENT_COSIGN_COSIGN_PRIVATE_KEY || env.COSIGN_DATA_COSIGN_PRIVATE_KEY }}
-          COSIGN_PASSWORD: ${{ env.COSIGN_PASSWORD || env.PROD_DEPLOYMENT_COSIGN_COSIGN_PASSWORD || env.COSIGN_DATA_COSIGN_PASSWORD }}
+          
+          SECRET_JSON: ${{ env.PROD_DEPLOYMENT_COSIGN }}
+          COSIGN_PASSWORD: ${{ env.COSIGN_PASSWORD || env.PROD_DEPLOYMENT_COSIGN_COSIGN_PASSWORD }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           
-          if [ -z "$RAW_KEY" ]; then 
-            echo "❌ ERROR: RAW_KEY is EMPTY. Check AWS Secret keys names."
+          RAW_KEY=$(echo $SECRET_JSON | jq -r '.COSIGN_PRIVATE_KEY')
+
+          
+          if [ -z "$RAW_KEY" ] || [ "$RAW_KEY" == "null" ]; then 
+            echo "❌ ERROR: Could not extract COSIGN_PRIVATE_KEY from JSON."
             exit 1
           fi
 
-         
+          
           printf "%b" "$RAW_KEY" > cosign.key
 
-          echo "Checking Frontend key file format:"
+          echo "✅ Key file format check (Should start with -----):"
           head -n 1 cosign.key
 
           
           cosign sign --yes --key cosign.key $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$IMAGE_TAG
-          
           
           rm cosign.key
 
