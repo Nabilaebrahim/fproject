@@ -161,7 +161,8 @@ jobs:
         uses: aws-actions/aws-secretsmanager-get-secrets@v2
         with:
           secret-ids: |
-            COSIGN_DATA, prod/deployment/cosign
+            
+            prod/deployment/cosign
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.4.0
@@ -169,25 +170,27 @@ jobs:
       # ==========================================================
       
       # ==========================================================
-      - name: Sign Image
+      - name: Sign Backend Image
         env:
-          
-          RAW_KEY: ${{ env.COSIGN_DATA_COSIGN_PRIVATE_KEY }}
-          COSIGN_PASSWORD: ${{ env.COSIGN_DATA_COSIGN_PASSWORD }}
+         
+          RAW_KEY: ${{ env.COSIGN_PRIVATE_KEY || env.PROD_DEPLOYMENT_COSIGN_COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ env.COSIGN_PASSWORD || env.PROD_DEPLOYMENT_COSIGN_COSIGN_PASSWORD }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          
-          printf "%b" "$RAW_KEY" > cosign.key
+          if [ -z "$RAW_KEY" ]; then 
+            echo "❌ ERROR: RAW_KEY is EMPTY. Check AWS Secret keys names."
+            exit 1
+          fi
 
+          printf "%b" "$RAW_KEY" > cosign.key
           
-          echo "First line of the key file:"
+          echo "Key file format check:"
           head -n 1 cosign.key
 
-          
           cosign sign --yes --key cosign.key $ECR_REGISTRY/$ECR_REPOSITORY:backend-$IMAGE_TAG
-
+          rm cosign.key
       # ==========================================================
 
       - name: Update YAML and Push to GitHub

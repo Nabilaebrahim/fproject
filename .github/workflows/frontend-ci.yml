@@ -152,7 +152,7 @@ jobs:
         uses: aws-actions/aws-secretsmanager-get-secrets@v2
         with:
           secret-ids: |
-            COSIGN_DATA, prod/deployment/cosign
+            prod/deployment/cosign
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.4.0
@@ -162,21 +162,30 @@ jobs:
       # ==========================================================
       - name: Sign Frontend Image
         env:
-          RAW_KEY: ${{ env.COSIGN_DATA_COSIGN_PRIVATE_KEY }}
-          COSIGN_PASSWORD: ${{ env.COSIGN_DATA_COSIGN_PASSWORD }}
+          # هنا بنجرب كل الاحتمالات لاسم المتغير عشان RAW_KEY ماتطلعش فاضية
+          RAW_KEY: ${{ env.COSIGN_PRIVATE_KEY || env.PROD_DEPLOYMENT_COSIGN_COSIGN_PRIVATE_KEY || env.COSIGN_DATA_COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ env.COSIGN_PASSWORD || env.PROD_DEPLOYMENT_COSIGN_COSIGN_PASSWORD || env.COSIGN_DATA_COSIGN_PASSWORD }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           
-          printf "%b" "$RAW_KEY" > cosign.key
-
-          
-          echo "Checking Frontend key file head:"
-          head -n 1 cosign.key
+          if [ -z "$RAW_KEY" ]; then 
+            echo "❌ ERROR: RAW_KEY is EMPTY. Check AWS Secret keys names."
+            exit 1
+          fi
 
          
+          printf "%b" "$RAW_KEY" > cosign.key
+
+          echo "Checking Frontend key file format:"
+          head -n 1 cosign.key
+
+          
           cosign sign --yes --key cosign.key $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$IMAGE_TAG
+          
+          
+          rm cosign.key
 
       # ==========================================================
 
