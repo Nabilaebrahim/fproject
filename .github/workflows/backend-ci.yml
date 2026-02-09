@@ -178,8 +178,18 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           
-          python3 -c "import os; print(os.environ['COSIGN_PRIVATE_KEY'].replace('\\n', '\n'))" > cosign.key
+          echo "$COSIGN_PRIVATE_KEY" > cosign.key
+
           
+          if grep -q "\\n" cosign.key; then
+            sed -i 's/\\n/\n/g' cosign.key
+          fi
+
+          
+          echo "Checking key format starting characters..."
+          head -c 10 cosign.key
+          echo ""
+
           
           cosign sign --yes --key cosign.key $ECR_REGISTRY/$ECR_REPOSITORY:backend-$IMAGE_TAG
 
