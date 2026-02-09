@@ -3,8 +3,9 @@ name: Frontend CI/CD
 on:
   push:
     paths:
-      - 'frontend/**'
-      - 'k8s/**'
+      - 'frontend/**'        
+      - 'k8s/**'             
+      - '!k8s/frontend.yaml'
     branches: [ main ]
 
 jobs:

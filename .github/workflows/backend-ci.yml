@@ -2,8 +2,9 @@ name: Backend CI/CD
 on:
   push:
     paths:
-      - 'backend/**'
-      - 'k8s/**' 
+      - 'backend/**'       
+      - 'k8s/**'            
+      - '!k8s/backend.yaml'
     branches: [ main ]
 
 jobs:
