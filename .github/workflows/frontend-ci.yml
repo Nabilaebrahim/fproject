@@ -168,10 +168,12 @@ jobs:
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          
-          echo -e "$COSIGN_PRIVATE_KEY" > cosign.key
-          
          
+          python3 -c "import os; print(os.environ['COSIGN_PRIVATE_KEY'].replace('\\n', '\n'))" > cosign.key
+          
+          
+          head -n 1 cosign.key
+          
           cosign sign --yes --key cosign.key $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$IMAGE_TAG
 
       # ==========================================================
