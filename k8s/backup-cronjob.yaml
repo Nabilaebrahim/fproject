@@ -1,3 +1,70 @@
+# apiVersion: batch/v1
+# kind: CronJob
+# metadata:
+#   name: db-backup
+# spec:
+#   schedule: "0 0 * * *"  #every day at 12 night 
+#   jobTemplate:
+#     spec:
+#       template:
+#         spec:
+#           containers:
+#           - name: backup-worker
+#             image: postgres:15
+#             env:
+#             - name: AWS_ACCESS_KEY_ID
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: aws-s3-creds
+#                   key: access_key
+#             - name: AWS_SECRET_ACCESS_KEY
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: aws-s3-creds
+#                   key: secret_key
+#             - name: AWS_DEFAULT_REGION
+#               value: "us-east-1"
+#             - name: PGPASSWORD
+#               value: "postgres" 
+#      #----------------------------------------------------------         
+#             # command:
+#             # - /bin/sh
+#             # - -c
+#             # - |
+              
+#             #   apt-get update && apt-get install -y awscli
+              
+              
+#             #   pg_dump -h db -U postgres microservices_db > /tmp/backup.sql
+              
+             
+#             #   aws s3 cp /tmp/backup.sql s3://s3-bucket-buckup-from-db/backup-$(date +%Y-%m-%d).sql
+
+# #---------------------------------------------------------------------------------------------------------------
+#               command:
+#               - /bin/sh
+#               - -c
+#               - |
+#                 apt-get update && apt-get install -y awscli
+
+  
+#                 pg_dump -h db-0.db -U postgres microservices_db > /tmp/db0.sql
+
+  
+#                 pg_dump -h db-1.db -U postgres microservices_db > /tmp/db1.sql
+
+  
+#                 cat /tmp/db0.sql /tmp/db1.sql > /tmp/full_backup.sql
+
+  
+#                 aws s3 cp /tmp/full_backup.sql s3://s3-bucket-buckup-from-db/full-backup-$(date +%Y-%m-%d).sql
+#           restartPolicy: OnFailure
+
+
+
+
+      
+
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -12,6 +79,9 @@ spec:
           - name: backup-worker
             image: postgres:15
             env:
+            
+            - name: POSTGRES_PASSWORD
+              value: "postgres"
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
@@ -26,38 +96,27 @@ spec:
               value: "us-east-1"
             - name: PGPASSWORD
               value: "postgres" 
-            # command:
-            # - /bin/sh
-            # - -c
-            # - |
+            command:
+            - /bin/sh
+            - -c
+            - |
               
-            #   apt-get update && apt-get install -y awscli
+              apt-get update && apt-get install -y awscli
+
               
+              echo "Backing up db-0..."
+              pg_dump -h db-0.db -U postgres microservices_db > /tmp/db0.sql
+
               
-            #   pg_dump -h db -U postgres microservices_db > /tmp/backup.sql
+              echo "Backing up db-1..."
+              pg_dump -h db-1.db -U postgres microservices_db > /tmp/db1.sql
+
               
-             
-            #   aws s3 cp /tmp/backup.sql s3://s3-bucket-buckup-from-db/backup-$(date +%Y-%m-%d).sql
-              command:
-              - /bin/sh
-              - -c
-              - |
-                apt-get update && apt-get install -y awscli
+              echo "Merging backups..."
+              cat /tmp/db0.sql /tmp/db1.sql > /tmp/full_backup.sql
 
-  
-                pg_dump -h db-0.db -U postgres microservices_db > /tmp/db0.sql
-
-  
-                pg_dump -h db-1.db -U postgres microservices_db > /tmp/db1.sql
-
-  
-                cat /tmp/db0.sql /tmp/db1.sql > /tmp/full_backup.sql
-
-  
-                aws s3 cp /tmp/full_backup.sql s3://s3-bucket-buckup-from-db/full-backup-$(date +%Y-%m-%d).sql
-          restartPolicy: OnFailure
-
-
-
-
+              
+              echo "Uploading to S3..."
+              aws s3 cp /tmp/full_backup.sql s3://s3-bucket-buckup-from-db/full-backup-$(date +%Y-%m-%d).sql
           
+          restartPolicy: OnFailure      
