@@ -169,26 +169,21 @@ jobs:
       # ==========================================================
       
       # ==========================================================
-      - name: Sign Backend Image
+      - name: Sign Image
         env:
-          COSIGN_PRIVATE_KEY: ${{ env.COSIGN_DATA_COSIGN_PRIVATE_KEY }}
+          
+          RAW_KEY: ${{ env.COSIGN_DATA_COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ env.COSIGN_DATA_COSIGN_PASSWORD }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           
-          echo "$COSIGN_PRIVATE_KEY" > cosign.key
+          printf "%b" "$RAW_KEY" > cosign.key
 
           
-          if grep -q "\\n" cosign.key; then
-            sed -i 's/\\n/\n/g' cosign.key
-          fi
-
-          
-          echo "Checking key format starting characters..."
-          head -c 10 cosign.key
-          echo ""
+          echo "First line of the key file:"
+          head -n 1 cosign.key
 
           
           cosign sign --yes --key cosign.key $ECR_REGISTRY/$ECR_REPOSITORY:backend-$IMAGE_TAG
