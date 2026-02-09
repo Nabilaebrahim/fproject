@@ -5,8 +5,7 @@ metadata:
   annotations:
     policies.kyverno.io/title: Verify Image Signature
 spec:
-  
-  validationFailureAction: Audit 
+  validationFailureAction: Audit
   background: true
   rules:
     - name: verify-signature
@@ -17,10 +16,9 @@ spec:
               - Pod
       verifyImages:
         - imageReferences:
-            - "*" 
+            - "*"
           attestations:
             - predicateType: cosign.sigstore.dev/attestation/v1
-          
           key: |-
             -----BEGIN PUBLIC KEY-----
             MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvrEYd5o5eap0Bb2yAsyxZIf4O3LZ
