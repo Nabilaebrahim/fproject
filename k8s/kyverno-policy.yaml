@@ -17,6 +17,8 @@ spec:
       verifyImages:
       - imageReferences:
         - "*"
+        mutateDigest: false  
+        verifyDigest: false
         attestations:
         - predicateType: cosign.sigstore.dev/attestation/v1
         key: |-
