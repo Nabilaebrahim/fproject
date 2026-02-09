@@ -26,18 +26,35 @@ spec:
               value: "us-east-1"
             - name: PGPASSWORD
               value: "postgres" 
-            command:
-            - /bin/sh
-            - -c
-            - |
+            # command:
+            # - /bin/sh
+            # - -c
+            # - |
               
-              apt-get update && apt-get install -y awscli
+            #   apt-get update && apt-get install -y awscli
               
               
-              pg_dump -h db -U postgres microservices_db > /tmp/backup.sql
+            #   pg_dump -h db -U postgres microservices_db > /tmp/backup.sql
               
              
-              aws s3 cp /tmp/backup.sql s3://s3-bucket-buckup-from-db/backup-$(date +%Y-%m-%d).sql
+            #   aws s3 cp /tmp/backup.sql s3://s3-bucket-buckup-from-db/backup-$(date +%Y-%m-%d).sql
+              command:
+              - /bin/sh
+              - -c
+              - |
+                apt-get update && apt-get install -y awscli
+
+  
+                pg_dump -h db-0.db -U postgres microservices_db > /tmp/db0.sql
+
+  
+                pg_dump -h db-1.db -U postgres microservices_db > /tmp/db1.sql
+
+  
+                cat /tmp/db0.sql /tmp/db1.sql > /tmp/full_backup.sql
+
+  
+                aws s3 cp /tmp/full_backup.sql s3://s3-bucket-buckup-from-db/full-backup-$(date +%Y-%m-%d).sql
           restartPolicy: OnFailure
 
 
