@@ -35,3 +35,6 @@ __MACOSX/
 
 cosign.pub
 cosign.key
+
+
+new-key-fproject.pem
